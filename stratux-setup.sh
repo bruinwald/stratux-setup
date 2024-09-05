@@ -1,6 +1,8 @@
 # Copyright (c) 2016 Joseph D Poirier
 # Distributable under the terms of The New BSD License
 # that can be found in the LICENSE file.
+# Copyright (C) 2024 Jonathan M Wilder
+# Added updates to make this script function again.
 
 
 BLACK=$(tput setaf 0)
@@ -18,7 +20,7 @@ NORMAL=$(tput sgr0)
 BLINK=$(tput blink)
 REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
-
+PARALLEL_JOBS=4
 
 if [ $(whoami) != 'root' ]; then
     echo "${BOLD}${RED}This script must be executed as root, exiting...${WHITE}${NORMAL}"
@@ -132,35 +134,49 @@ echo
 echo "${YELLOW}**** Installing dependencies... *****${WHITE}"
 
 if [ "$REVISION" == "$RPI2BxREV" ] || [ "$REVISION" == "$RPI2ByREV" ]  || [ "$REVISION" == "$RPI3BxREV" ] || [ "$REVISION" == "$RPI3ByREV" ] || [ "$REVISION" == "$RPI0xREV" ] || [ "$REVISION" == "$RPI0yREV" ]; then
-    apt-get install -y rpi-update
+    apt install -y rpi-update
     rpi-update
 fi
 
-apt-get update
+apt update
 apt-mark hold plymouth
-apt-get dist-upgrade -y
-apt-get upgrade -y
-apt-get install -y git
+apt dist-upgrade -y
+apt upgrade -y
+apt install -y git
 git config --global http.sslVerify false
-apt-get install -y iw
-apt-get install -y lshw
-apt-get install -y wget
-apt-get install -y isc-dhcp-server
-apt-get install -y tcpdump
-apt-get install -y cmake
-apt-get install -y libusb-1.0-0.dev
-apt-get install -y build-essential
-apt-get install -y mercurial
-apt-get install -y autoconf
-apt-get install -y fftw3
-apt-get install -y fftw3-dev
-apt-get install -y libtool
-apt-get install -y automake
-apt-get remove -y hostapd
-apt-get install -y hostapd
-apt-get install -y pkg-config
-apt-get install -y libjpeg-dev i2c-tools python-smbus python-pip python-dev python-pil python-daemon screen
-pip install wiringpi
+apt install -y iw
+apt install -y lshw
+apt install -y wget
+apt install -y isc-dhcp-server
+apt install -y tcpdump
+apt install -y cmake
+# The name of this package has changed from libusb-1.0-0.dev to libusb-1.0-0-dev.
+apt install -y libusb-1.0-0-dev
+apt install -y build-essential
+apt install -y mercurial
+apt install -y autoconf
+apt install -y libtool
+apt install -y automake
+apt remove -y hostapd
+apt install -y hostapd
+apt install -y pkg-config
+apt install -y libncurses-dev
+# python-* packages have had their name prefix changed to python3-*
+apt install -y libjpeg-dev i2c-tools python3-smbus python3-pip python3-dev python3-pil python3-daemon screen
+# Dependency packages for building FFTW3.
+apt install -y ocaml ocamlbuild autoconf automake indent libtool
+wget https://github.com/WiringPi/WiringPi/releases/download/3.8/wiringpi_3.8_arm64.deb
+dpkg --install wiringpi_3.8_arm64.deb
+# FFTW3 is no longer available on apt. Must build from source. This has been changed to clone the FFTW3 repository.
+wget http://fftw.org/fftw-3.3.10.tar.gz
+tar -zxf fftw-3.3.10.tar.gz
+cd fftw-3.3.10
+./configure
+make -j $PARALLEL_JOBS
+make install
+cd ../
+rm -rf fftw-3.3.10
+
 #apt-get purge golang*
 
 echo "${GREEN}...done${WHITE}"
@@ -213,6 +229,9 @@ EOT
 
 echo "${GREEN}...done${WHITE}"
 
+rm -rf /boot/firmware/stratux.conf
+echo '{"UAT_Enabled": true,"OGN_Enabled": false,"DeveloperMode": false}' > /boot/firmware/stratux.conf
+touch /boot/firmware/.stratux-first-boot
 
 ##############################################################
 ##  SSH setup and config
@@ -324,8 +343,9 @@ rm -rf gobootstrap/
 
 if [ "$MACHINE" == "$ARM6L" ] || [ "$MACHINE" == "$ARM7L" ]; then
     #### For RPi-2/3, is there any disadvantage to using the armv6l compiler?
-    wget https://storage.googleapis.com/golang/go1.7.2.linux-armv6l.tar.gz --no-check-certificate
-    tar -zxvf go1.7.2.linux-armv6l.tar.gz
+# Updated with latest version of Go compiler
+    https://go.dev/dl/go1.23.0.linux-armv6l.tar.gz --no-check-certificate
+    tar -zxvf go1.23.0.linux-armv6l.tar.gz
 
     if [ ! -d /root/go ]; then
         echo "${BOLD}${RED}ERROR - go folder doesn't exist, exiting...${WHITE}${NORMAL}"
@@ -338,12 +358,14 @@ if [ "$MACHINE" == "$ARM6L" ] || [ "$MACHINE" == "$ARM7L" ]; then
 #        export GOARM=7
 #    then
 elif [ "$MACHINE" == "$ARM64" ]; then
-    # ulimit -s 1024     # set the thread stack limit to 1mb
+    ulimit -s 1024     # set the thread stack limit to 1mb
     # ulimit -s          # check that it worked
-    # env GO_TEST_TIMEOUT_SCALE=10 GOROOT_BOOTSTRAP=/root/gobootstrap
-
-    wget https://github.com/jpoirier/GoAarch64Binaries/raw/master/go1.6.linux-armvAarch64.tar.gz --no-check-certificate
-    tar -zxvf go1.6.linux-armvAarch64.tar.gz
+    env GO_TEST_TIMEOUT_SCALE=10 GOROOT_BOOTSTRAP=/root/gobootstrap
+# Updated with latest version of Go compiler
+    wget https://go.dev/dl/go1.23.0.linux-arm64.tar.gz --no-check-certificate
+    tar -zxvf go1.23.0.linux-arm64.tar.gz
+    rm go1.23.0.linux-arm64.tar.gz
+    
     if [ ! -d /root/go ]; then
         echo "${BOLD}${RED}ERROR - go folder doesn't exist, exiting...${WHITE}${NORMAL}"
         exit
@@ -369,7 +391,7 @@ echo "${YELLOW}**** RTL-SDR library build... *****${WHITE}"
 cd /root
 
 rm -rf librtlsdr
-git clone https://github.com/jpoirier/librtlsdr
+git clone https://github.com/steve-m/librtlsdr
 cd librtlsdr
 mkdir build
 cd build
@@ -390,7 +412,8 @@ echo "${YELLOW}**** Stratux build and installation... *****${WHITE}"
 cd /root
 
 rm -rf stratux
-git clone https://github.com/cyoung/stratux --recursive
+# b3nn0/stratux is the new official repository
+git clone https://github.com/b3nn0/stratux.git --recursive
 cd stratux
 git fetch --tags
 tag=$(git describe --tags `git rev-list --tags --max-count=1`)
@@ -401,12 +424,14 @@ make all
 make install
 
 #### minimal sanity checks
-if [ ! -f "/usr/bin/gen_gdl90" ]; then
+# Updated sanity check paths. Previously, gen_gdl90 and dump1090 were in /usr/bin. These files
+# are now installed into /opt/stratux/bin.
+if [ ! -f "/opt/stratux/bin/gen_gdl90" ]; then
     echo "${BOLD}${RED}ERROR - gen_gdl90 file missing, exiting...${WHITE}${NORMAL}"
     exit
 fi
 
-if [ ! -f "/usr/bin/dump1090" ]; then
+if [ ! -f "/opt/stratux/bin/dump1090" ]; then
     echo "${BOLD}${RED}ERROR - dump1090 file missing, exiting...${WHITE}${NORMAL}"
     exit
 fi
