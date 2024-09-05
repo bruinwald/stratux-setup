@@ -135,7 +135,7 @@ echo "${YELLOW}**** Installing dependencies... *****${WHITE}"
 
 if [ "$REVISION" == "$RPI2BxREV" ] || [ "$REVISION" == "$RPI2ByREV" ]  || [ "$REVISION" == "$RPI3BxREV" ] || [ "$REVISION" == "$RPI3ByREV" ] || [ "$REVISION" == "$RPI0xREV" ] || [ "$REVISION" == "$RPI0yREV" ]; then
     apt install -y rpi-update
-    rpi-update
+    rpi-update -y
 fi
 
 apt update
@@ -396,7 +396,7 @@ cd librtlsdr
 mkdir build
 cd build
 cmake ../
-make
+make -j $PARALLEL_JOBS
 make install
 ldconfig
 
@@ -420,7 +420,7 @@ tag=$(git describe --tags `git rev-list --tags --max-count=1`)
 # checkout the latest release
 git checkout $tag
 
-make all
+make -j $PARALLEL_JOBS all
 make install
 
 #### minimal sanity checks
@@ -452,7 +452,7 @@ git clone https://github.com/steve-m/kalibrate-rtl
 cd kalibrate-rtl
 ./bootstrap
 ./configure
-make
+make -j $PARALLEL_JOBS
 make install
 
 echo "${GREEN}...done${WHITE}"
