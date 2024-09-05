@@ -1,5 +1,10 @@
 *** Note, currently outdated and not in sync with the latest Stratux code ***
 
+September 5th, 2024 - This repo is now currently in sync with the latest
+Stratux code. However, it is still in beta development. Of the things to do, 
+I plan to add Raspberry Pi 4B and Pi 5 support. For now, it seems to be working
+great on the Pi 3B. Feel free to clone this fork and test on other platforms.
+
 An alternative method for installing Stratux on your board's Linux OS.
 
 The script is currently in beta development.
