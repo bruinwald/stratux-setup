@@ -27,23 +27,21 @@ Commands to run the setup script:
 
     # sudo su -
 
-    [Raspberry Pi boards]
-
-    # raspi-config
-        select option 1 - expand filesystem
-        reboot
-
-
     [Odroid-C4]
 
     # apt-get update
     # apt-get install -y git
 
     [All]
-
+    pi@stratux ~ # sudo apt update && sudo apt full-upgrade -y
+    pi@stratux ~ # sudo apt install git
+    pi@stratux ~ # sudo passwd
+    [Set root password]
+    pi@stratux ~ # su -
+    [Enter root password]
     # cd /root
-
-    # git clone https://github.com/jpoirier/stratux-setup
+    
+    # git clone https://github.com/JonWilder/stratux-setup.git
     # cd stratux-setup
 
     # bash stratux-setup.sh
