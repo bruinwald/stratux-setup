@@ -344,7 +344,7 @@ rm -rf gobootstrap/
 if [ "$MACHINE" == "$ARM6L" ] || [ "$MACHINE" == "$ARM7L" ]; then
     #### For RPi-2/3, is there any disadvantage to using the armv6l compiler?
 # Updated with latest version of Go compiler
-    https://go.dev/dl/go1.23.0.linux-armv6l.tar.gz --no-check-certificate
+    wget https://go.dev/dl/go1.23.0.linux-armv6l.tar.gz --no-check-certificate
     tar -zxvf go1.23.0.linux-armv6l.tar.gz
 
     if [ ! -d /root/go ]; then
