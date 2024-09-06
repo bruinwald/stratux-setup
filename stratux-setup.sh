@@ -165,8 +165,15 @@ apt install -y libncurses-dev
 apt install -y libjpeg-dev i2c-tools python3-smbus python3-pip python3-dev python3-pil python3-daemon screen
 # Dependency packages for building FFTW3.
 apt install -y ocaml ocamlbuild autoconf automake indent libtool
+if [ "$MACHINE" == "$ARM6L" ] || [ "$MACHINE" == "$ARM7L" ]; then
+# Raspberry Pi 32-bit
+wget https://github.com/WiringPi/WiringPi/releases/download/3.8/wiringpi_3.8_armhf.deb
+dpkg --install wiringpi_3.8_armhf.deb
+elif [ "$MACHINE" == "$ARM64" ]; then
+# Raspberry Pi 64-bit
 wget https://github.com/WiringPi/WiringPi/releases/download/3.8/wiringpi_3.8_arm64.deb
 dpkg --install wiringpi_3.8_arm64.deb
+fi
 # FFTW3 is no longer available on apt. Must build from source. This has been changed to clone the FFTW3 repository.
 wget http://fftw.org/fftw-3.3.10.tar.gz
 tar -zxf fftw-3.3.10.tar.gz
