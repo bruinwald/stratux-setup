@@ -431,10 +431,10 @@ make -j $PARALLEL_JOBS all
 make install
 
 #### minimal sanity checks
-# Updated sanity check paths. Previously, gen_gdl90 and dump1090 were in /usr/bin. These files
+# Updated sanity check paths. Previously, gen_gdl90 (now: stratuxrun) and dump1090 were in /usr/bin. These files
 # are now installed into /opt/stratux/bin.
-if [ ! -f "/opt/stratux/bin/gen_gdl90" ]; then
-    echo "${BOLD}${RED}ERROR - gen_gdl90 file missing, exiting...${WHITE}${NORMAL}"
+if [ ! -f "/opt/stratux/bin/stratuxrun" ]; then
+    echo "${BOLD}${RED}ERROR - stratuxrun file missing, exiting...${WHITE}${NORMAL}"
     exit
 fi
 
