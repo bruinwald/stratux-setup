@@ -420,7 +420,8 @@ cd /root
 
 rm -rf stratux
 # b3nn0/stratux is the new official repository
-git clone https://github.com/b3nn0/stratux.git --recursive
+git clone git@github.com:vanavx/kitt.git --recursive
+ln -s /root/kitt /root/stratux
 cd stratux
 git fetch --tags
 tag=$(git describe --tags `git rev-list --tags --max-count=1`)
